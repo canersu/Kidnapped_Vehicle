@@ -77,9 +77,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     particles[i].y += (velocity/yaw_rate) * (cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
     particles[i].theta += yaw_rate*delta_t;
     
-    particles[i].x = dist_x(gen);
-    particles[i].y = dist_y(gen);
-    particles[i].theta = dist_theta(gen);
+    particles[i].x += dist_x(gen);
+    particles[i].y += dist_y(gen);
+    particles[i].theta += dist_theta(gen);
   }
 }
 
@@ -93,7 +93,24 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
+  for(int i=0; i<observations.size(); ++i)
+  {
+    double min_dist = std::numeric_limits<double>::max();
+    int mapId = -99;
+    for(int j=0; j<predicted.size(); ++j)
+    {
+      double x_dist = observations[i].x - predicted[j].x;
+      double y_dist = observations[i].y - predicted[j].y;
+      double dist = x_dist*x_dist + y_dist*y_dist;
 
+      if(dist < min_dist)
+      {
+        min_dist = dist;
+        mapId = predicted[j].id;
+      }
+    }
+    observations[i].id = mapId;
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
